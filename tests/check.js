@@ -23,10 +23,10 @@ near(worst, 0, 1e-9, 'max |det M − 1|');
 // 二、同一個井的三對角特徵值（Python 用格距 0.005 nm、兩邊各 8 nm）
 const h = 0.005, V = [];
 for (let x = -8 + h; x < ref.w + 8 - h / 2; x += h) V.push(x > 0 && x < ref.w ? 0 : ref.V0);
-levels(V, h, ref.V0 - 1e-6).E.forEach((l, i) => near(l, ref.levels[i], 1e-4, `λ${i + 1}`));
+levels(V, h, ref.V0 - 1e-6).E.forEach((l, i) => near(l, ref.levels[i], 1e-8, `λ${i + 1}`));
 
-// 三、顏色：直徑 3、5、7 nm（act8_optics.py 算出 541.6、618.0、658.1 nm）
-[[3, 541.6], [5, 618.0], [7, 658.1]].forEach(([D, nm]) => near(photon(D).nm, nm, 0.15, `波長（${D} nm）`));
+// 三、顏色：直徑 3、5、7 nm，act8_optics.py 的有限井、V0 取 0.56 eV 時的波長
+[[3, 541.586631], [5, 617.982199], [7, 658.139280]].forEach(([D, nm]) => near(photon(D).nm, nm, 1e-3, `波長（${D} nm）`));
 
 console.log(bad ? `${bad} 項不對` : '全部對上');
 process.exit(bad ? 1 : 0);
