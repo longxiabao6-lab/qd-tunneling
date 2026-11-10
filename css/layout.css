@@ -1,5 +1,6 @@
 /* 版面：頁首、分頁列、圖與控制欄的格線、頁尾；760px 以下改成單欄 */
 .top, main, .foot { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+.foot p { border-top: 1px solid var(--rule); padding-top: 16px; margin: 0; }
 .top { padding-top: 40px; }
 .lede { color: var(--muted); max-width: 46em; margin: 0 0 28px; }
 
@@ -17,15 +18,22 @@
 figure { margin: 0 0 18px; }
 figcaption { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
 canvas {
-  display: block; width: 100%; max-width: 100%; touch-action: none;
+  display: block; width: 100%; max-width: 100%; touch-action: pan-y;
   background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius);
 }
 
-.foot { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--rule); margin-top: 16px; padding-top: 16px; padding-bottom: 40px; }
+.foot { color: var(--muted); font-size: 0.85rem; margin-top: 16px; padding-bottom: 40px; }
 
 @media (max-width: 760px) {
   .top { padding-top: 24px; }
   h1 { font-size: 1.6rem; }
   .tabs { gap: 20px; }
   .panel { grid-template-columns: minmax(0, 1fr); gap: 8px; padding-top: 18px; }
+  /* 手機：圖黏在畫面上方，往下捲到拉桿時還看得到圖在變 */
+  .figs.stick, .figs.stick-tunnel { position: sticky; z-index: 1; background: var(--paper); padding-top: 8px; }
+  .figs.stick { top: 0; }
+  .figs.stick-tunnel { top: -186px; }           /* 位能圖捲走，只留 T(E) */
+  .figs figcaption { font-size: 0.78rem; }
 }
+#c-draw { touch-action: none; }
+@media (pointer: coarse) { #c-draw:not(.editing) { touch-action: pan-y; } }

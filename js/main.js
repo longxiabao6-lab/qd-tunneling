@@ -12,6 +12,13 @@ const t = tabs(names, Object.fromEntries(names.map(n => [n, VIEWS[n].draw])));
 const start = location.hash.slice(1);
 t.show(names.includes(start) ? start : 'tunnel');
 
+// 手機上第一頁的圖黏在上方時，位能圖要捲走：往上偏移它自己的高度
+function stickTop() {
+  const box = document.querySelector('.stick-tunnel'), first = box.querySelector('figure');
+  box.style.top = -(first.offsetHeight + parseFloat(getComputedStyle(first).marginBottom)) + 'px';
+}
+const redraw = () => { VIEWS[t.current()].draw(); stickTop(); };
+
 let timer;
-window.addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(() => VIEWS[t.current()].draw(), 120); });
-document.fonts?.ready.then(() => VIEWS[t.current()].draw());   // 字型載入後再畫一次，刻度字才對
+window.addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(redraw, 120); });
+document.fonts?.ready.then(redraw);   // 字型載入後再畫一次，刻度字才對

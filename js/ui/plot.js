@@ -1,14 +1,18 @@
 // 畫圖工具：畫布設定、座標軸、刻度。三個分頁共用
 export const token = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-export const levelColors = () => ['--l1', '--l2', '--l3', '--l4'].map(token);
+export const levelColors = () => ['--l1', '--l2', '--l3', '--l4', '--l5', '--l6'].map(token);
+export const phone = () => window.matchMedia('(max-width: 760px)').matches;
 export const PAD = { L: 54, R: 14, T: 12, B: 36 };
 
 // 依螢幕密度放大畫布，回傳 ctx 與 CSS 寬高
 export function setup(cv) {
   // 第一次記下 HTML 寫的高度；之後 cv.height 會改成乘過密度的值，不能再拿來用
+  // 手機上有 data-hm 就用比較矮的高度
   if (!cv.dataset.h) cv.dataset.h = cv.getAttribute('height');
-  const r = window.devicePixelRatio || 1, w = cv.clientWidth, h = +cv.dataset.h;
-  cv.width = w * r; cv.height = h * r; cv.style.height = h + 'px';
+  const r = window.devicePixelRatio || 1, w = cv.clientWidth, h = +(phone() && cv.dataset.hm || cv.dataset.h);
+  if (cv.width !== Math.round(w * r) || cv.height !== Math.round(h * r)) {   // 尺寸沒變就不重設，省掉重新配置
+    cv.width = Math.round(w * r); cv.height = Math.round(h * r); cv.style.height = h + 'px';
+  }
   const g = cv.getContext('2d');
   g.setTransform(r, 0, 0, r, 0, 0);
   g.clearRect(0, 0, w, h);
@@ -62,6 +66,10 @@ export function dataY(e, cv, y0, y1) {
   const r = cv.getBoundingClientRect();
   return y0 + (1 - (e.clientY - r.top - PAD.T) / (r.height - PAD.T - PAD.B)) * (y1 - y0);
 }
+
+// 10 的次方寫成上標，例如 1e-12 → 10⁻¹²
+const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+export const pow10 = t => (t === 1 ? '1' : '10' + String(Math.round(Math.log10(t))).replace(/./g, ch => SUP[ch]));
 
 export const vline = (g, x, y0, y1) => { g.beginPath(); g.moveTo(x, y0); g.lineTo(x, y1); g.stroke(); };
 export const hline = (g, y, x0, x1) => { g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); };

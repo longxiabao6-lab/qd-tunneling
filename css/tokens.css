@@ -1,16 +1,20 @@
-/* 設計變數：配色跟報告一樣，紙色底、深藍字；能階顏色照能量由低到高用紅、綠、藍（低能量發紅光） */
+/* 設計變數：紙色底、深藍字；能階顏色和報告的圖一樣，λ1 藍、λ2 橙、λ3 紫，之後綠、紅、青 */
 :root {
+  color-scheme: light;
   --paper: #f7f4ee;
   --sheet: #fffdf9;
   --ink: #1c2b3a;
   --muted: #5b6470;
   --rule: #ddd6c8;
   --line: #1f3a5f;
-  --barrier: #c9bfab;
-  --l1: #c2410c;
-  --l2: #15803d;
-  --l3: #1d4ed8;
-  --l4: #7c3aed;
+  --barrier: #b3a68e;
+  --track: #b9b0a0;
+  --l1: #2563eb;
+  --l2: #c2620a;
+  --l3: #7c3aed;
+  --l4: #059669;
+  --l5: #dc2626;
+  --l6: #0e7490;
   --focus: #1f3a5f;
   --radius: 6px;
   --gap: 32px;

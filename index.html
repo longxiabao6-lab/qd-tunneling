@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>量子點模擬程式</title>
 <meta name="description" content="同一個量子點，從傳遞矩陣與三對角矩陣兩邊看它的能階與顏色。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,75 +17,77 @@
 <body>
 <header class="top">
   <h1>量子點模擬程式</h1>
-  <p class="lede">同一個量子點，從兩邊看它的能階：把井放進三對角矩陣求特徵值，或讓電子從外面打進來、用傳遞矩陣算穿透率。兩邊算出的能量相同。</p>
+  <p class="lede">同一個井，用兩種矩陣找它的能階：把井放進三對角矩陣求特徵值，或讓電子從外面打進來，用 2×2 傳遞矩陣連乘算穿透率。位障越厚，穿透率的尖峰越貼近特徵值。</p>
   <nav class="tabs" role="tablist">
-    <button role="tab" id="t-tunnel" aria-controls="p-tunnel" aria-selected="true">共振穿隧</button>
-    <button role="tab" id="t-levels" aria-controls="p-levels" aria-selected="false">能階</button>
-    <button role="tab" id="t-color" aria-controls="p-color" aria-selected="false">顏色</button>
+    <button role="tab" id="t-tunnel" aria-controls="p-tunnel" aria-selected="true" tabindex="0">共振穿隧</button>
+    <button role="tab" id="t-levels" aria-controls="p-levels" aria-selected="false" tabindex="-1">能階</button>
+    <button role="tab" id="t-color" aria-controls="p-color" aria-selected="false" tabindex="-1">顏色</button>
   </nav>
 </header>
 
 <main>
   <!-- 一、共振穿隧 -->
-  <section class="panel" id="p-tunnel" role="tabpanel" aria-labelledby="t-tunnel">
-    <div class="figs">
+  <section class="panel" id="p-tunnel" role="tabpanel" aria-labelledby="t-tunnel" tabindex="0">
+    <div class="figs stick-tunnel">
       <figure>
-        <canvas id="c-profile" height="200" aria-label="位能與能階"></canvas>
-        <figcaption>位能：灰色是位障，彩色線是三對角矩陣算出的能階</figcaption>
+        <canvas id="c-profile" height="200" data-hm="130" role="img" aria-label="位能與能階"></canvas>
+        <figcaption>位能：淺褐色是位障，彩色線是三對角矩陣算出的能階</figcaption>
       </figure>
       <figure>
-        <canvas id="c-trans" height="300" aria-label="穿透率對能量"></canvas>
-        <figcaption>穿透率 <i>T</i>(<i>E</i>)，縱軸取對數；虛線是上面的能階。滑過圖可以讀數值</figcaption>
+        <canvas id="c-trans" height="300" data-hm="230" role="img" aria-label="穿透率對能量"></canvas>
+        <figcaption>穿透率 <i>T</i>(<i>E</i>)，縱軸取對數；虛線是上面的能階，圓點是找到的尖峰。滑過或點一下圖可以讀數值</figcaption>
       </figure>
     </div>
     <aside class="side">
       <div class="field"><label for="s-v0">位障高度</label><output id="o-v0"></output>
         <input type="range" id="s-v0" min="0.2" max="1.0" step="0.01" value="0.56"></div>
-      <div class="field"><label for="s-b">位障寬度</label><output id="o-b"></output>
-        <input type="range" id="s-b" min="0.3" max="3" step="0.05" value="1.5"></div>
+      <div class="field"><label for="s-b">位障厚度</label><output id="o-b"></output>
+        <input type="range" id="s-b" min="0.3" max="3" step="0.05" value="2"></div>
       <div class="field"><label for="s-w">井寬</label><output id="o-w"></output>
         <input type="range" id="s-w" min="2" max="10" step="0.1" value="5"></div>
       <div class="field"><span class="lab">位障道數</span>
         <div class="seg" id="g-nb" role="radiogroup" aria-label="位障道數">
-          <button data-v="2" aria-checked="true">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button>
+          <button role="radio" data-v="2" aria-checked="true">2</button><button role="radio" data-v="3" aria-checked="false">3</button><button role="radio" data-v="4" aria-checked="false">4</button><button role="radio" data-v="5" aria-checked="false">5</button><button role="radio" data-v="6" aria-checked="false">6</button>
         </div></div>
       <table class="readout" id="r-tunnel"></table>
       <p class="note" id="n-det"></p>
+      <p class="note hint">試試看：把位障厚度拉到 3 nm，尖峰會更貼近特徵值；位障改成 3 道以上，一個能階會分裂成「道數 − 1」個尖峰。</p>
     </aside>
   </section>
 
   <!-- 二、能階 -->
-  <section class="panel" id="p-levels" role="tabpanel" aria-labelledby="t-levels" hidden>
-    <div class="figs">
+  <section class="panel" id="p-levels" role="tabpanel" aria-labelledby="t-levels" tabindex="0" hidden>
+    <div class="figs stick">
       <figure>
-        <canvas id="c-draw" height="420" aria-label="可以拖曳的位能井與波函數"></canvas>
-        <figcaption>在圖上拖曳可以改井的形狀。每個能階畫在它的能量高度上，曲線是對應的特徵向量</figcaption>
+        <canvas id="c-draw" height="420" data-hm="300" role="img" aria-label="位能井與特徵向量"></canvas>
+        <figcaption>在圖上拖曳可以改井的形狀（手機請先按「用手指畫井」）。每個能階畫在它的能量高度上，曲線是對應的特徵向量，高低只表示形狀</figcaption>
       </figure>
     </div>
     <aside class="side">
       <div class="field"><span class="lab">井的形狀</span>
         <div class="seg" id="g-shape" role="radiogroup" aria-label="井的形狀">
-          <button data-v="box" aria-checked="true">方井</button><button data-v="para">拋物線</button><button data-v="double">雙井</button><button data-v="step">階梯</button>
+          <button role="radio" data-v="box" aria-checked="true">方井</button><button role="radio" data-v="para" aria-checked="false">拋物線</button><button role="radio" data-v="double" aria-checked="false">雙井</button><button role="radio" data-v="step" aria-checked="false">階梯</button>
         </div></div>
+      <button class="toggle" id="b-edit" aria-pressed="false">用手指畫井</button>
       <table class="readout" id="r-levels"></table>
       <p class="note" id="n-orth"></p>
     </aside>
   </section>
 
   <!-- 三、顏色 -->
-  <section class="panel" id="p-color" role="tabpanel" aria-labelledby="t-color" hidden>
-    <div class="figs">
+  <section class="panel" id="p-color" role="tabpanel" aria-labelledby="t-color" tabindex="0" hidden>
+    <div class="figs stick">
       <figure class="glow">
-        <canvas id="c-dot" height="300" aria-label="量子點發光的顏色"></canvas>
-        <canvas id="c-spec" height="70" aria-label="可見光譜上的位置"></canvas>
-        <figcaption>點的大小照直徑比例畫。顏色是近似顯示；報告的色度照 CIE 1931 計算</figcaption>
+        <canvas id="c-dot" height="300" data-hm="190" role="img" aria-label="量子點的顏色"></canvas>
+        <canvas id="c-spec" height="70" role="img" aria-label="可見光譜上的位置"></canvas>
+        <figcaption>點的大小照直徑比例畫。顏色是近似顯示，報告的色度照 CIE 1931 計算</figcaption>
       </figure>
     </div>
     <aside class="side">
       <div class="field"><label for="s-d">CdSe 量子點直徑</label><output id="o-d"></output>
-        <input type="range" id="s-d" min="2.3" max="8" step="0.05" value="5"></div>
+        <input type="range" id="s-d" min="2.4" max="8" step="0.05" value="3"></div>
       <table class="readout" id="r-color"></table>
-      <p class="note">發光能量 = 能隙 1.74 eV + 電子與電洞各自的最小特徵值 − 庫侖吸引；有限位障 0.56 eV。直徑小於 2.3 nm 時電子沒有束縛態，模型不適用。</p>
+      <p class="note">用報告 4.3 節的有限井模型（位障 0.56 eV）：能量 = 能隙 1.74 eV + 電子與電洞在球裡的最小特徵值 − 庫侖吸引。算出的是第一激子吸收峰，實際發光還要往長波長移一點（報告 4.6 節）。直徑接近 2.3 nm 時電子幾乎沒有束縛態（報告 4.3 節），模型不適用，所以拉桿從 2.4 nm 開始。報告 4.2 節的「5 nm 綠點」是無限井模型的結果，和這裡不同。</p>
     </aside>
   </section>
 </main>

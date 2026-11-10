@@ -57,7 +57,7 @@ export function levels(V, h, vmax, k = 6, m = ME) {
 }
 
 // 傳遞矩陣那頁的結構放進三對角矩陣：兩端再接 out nm 的位障，最外面 ψ = 0
-export function stackLevels(stack, v0, h = 0.01, out = 6) {
+export function stackLevels(stack, v0, h = 0.01, out = 16) {   // 外牆要離夠遠：λ3 在位障裡衰減長度約 3 nm，8 nm 會偏高 4e-4 eV
   const L = stack.reduce((a, s) => a + s[1], 0), V = [];
   for (let x = -out + h; x < L + out - h / 2; x += h) {
     if (x < 0 || x >= L) { V.push(v0); continue; }

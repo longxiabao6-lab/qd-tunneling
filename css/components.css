@@ -5,9 +5,13 @@
 .field output { color: var(--muted); font-variant-numeric: tabular-nums; }
 .field input, .field .seg { grid-column: 1 / -1; margin-top: 8px; }
 
-input[type="range"] { width: 100%; height: 22px; appearance: none; background: none; cursor: pointer; }
-input[type="range"]::-webkit-slider-runnable-track { height: 3px; background: var(--rule); border-radius: 2px; }
-input[type="range"]::-moz-range-track { height: 3px; background: var(--rule); border-radius: 2px; }
+/* 拉桿：看起來細，摸得到的範圍大；拉過的那段用深色（--p 由 controls.js 設定） */
+input[type="range"] { width: 100%; height: 28px; appearance: none; background: none; cursor: pointer; --p: 50%; }
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px; border-radius: 2px; background: linear-gradient(to right, var(--line) var(--p), var(--track) var(--p));
+}
+input[type="range"]::-moz-range-track { height: 3px; border-radius: 2px; background: var(--track); }
+input[type="range"]::-moz-range-progress { height: 3px; border-radius: 2px; background: var(--line); }
 input[type="range"]::-webkit-slider-thumb {
   appearance: none; width: 16px; height: 16px; margin-top: -6.5px; border-radius: 50%;
   background: var(--line); border: 2px solid var(--sheet); box-shadow: 0 1px 3px rgba(28, 43, 58, .3);
@@ -17,17 +21,31 @@ input[type="range"]::-moz-range-thumb {
   background: var(--line); border: 2px solid var(--sheet); box-shadow: 0 1px 3px rgba(28, 43, 58, .3);
 }
 
-.seg { display: flex; overflow: hidden; border: 1px solid var(--rule); border-radius: var(--radius); }
+.seg { display: flex; overflow: hidden; border: 1px solid var(--track); border-radius: var(--radius); }
 .seg button {
   flex: 1; font: inherit; font-size: 0.9rem; padding: 6px 0; cursor: pointer;
-  color: var(--muted); background: var(--sheet); border: 0; border-left: 1px solid var(--rule);
+  color: var(--muted); background: var(--sheet); border: 0; border-left: 1px solid var(--track);
   transition: background .15s, color .15s;
 }
 .seg button:first-child { border-left: 0; }
 .seg button:hover { color: var(--ink); }
 .seg button[aria-checked="true"] { color: #fff; background: var(--line); }
 
-button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (pointer: coarse) {
+  input[type="range"] { height: 44px; }
+  input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; margin-top: -10.5px; }
+  input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; }
+  .seg button { padding: 11px 0; }
+}
+
+.toggle {
+  font: inherit; font-size: 0.9rem; padding: 10px 14px; margin: 0 0 14px; cursor: pointer;
+  color: var(--ink); background: var(--sheet); border: 1px solid var(--track); border-radius: var(--radius);
+}
+.toggle[aria-pressed="true"] { color: #fff; background: var(--line); border-color: var(--line); }
+@media (pointer: fine) { .toggle { display: none; } }   /* 有滑鼠就直接畫，不需要這顆 */
+
+button:focus-visible, input:focus-visible, .panel:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .readout { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-variant-numeric: tabular-nums; }
 .readout th, .readout td { padding: 5px 0; text-align: right; font-weight: 400; border-bottom: 1px solid var(--rule); }
@@ -36,3 +54,5 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); out
 .readout .sw { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; border-radius: 2px; }
 .readout .big td { font-size: 1.4rem; font-weight: 500; padding-top: 0; border-bottom: 0; }
 .note { color: var(--muted); font-size: 0.85rem; }
+.hint { border-left: 2px solid var(--track); padding-left: 10px; }
+.readout tr.grp td { border-top: 2px solid var(--track); }
