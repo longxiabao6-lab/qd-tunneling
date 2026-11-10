@@ -45,10 +45,9 @@ export function barriers(v0, b, w, nb) {
 
 // 在 [lo, hi] 裡找 T 的最高點：每輪取 120 點、留下最高點左右各兩格再細分。
 // 窄尖峰在 log T 上是一個往下開的漏斗，粗格點的最高點一定落在漏斗裡，所以一路縮小就找得到
-export function peakNear(stack, lo, hi, m = ME) {
+export function peakNear(stack, lo, hi, m = ME, rounds = 7, n = 120) {
   let best = lo, dx = 0;
-  for (let round = 0; round < 7; round++) {
-    const n = 120;
+  for (let round = 0; round < rounds; round++) {
     dx = (hi - lo) / n;
     let bt = -1;
     for (let i = 0; i <= n; i++) {

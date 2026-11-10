@@ -56,3 +56,4 @@ button:focus-visible, input:focus-visible, .panel:focus-visible { outline: 2px s
 .note { color: var(--muted); font-size: 0.85rem; }
 .hint { border-left: 2px solid var(--track); padding-left: 10px; }
 .readout tr.grp td { border-top: 2px solid var(--track); }
+.readout .more { font: inherit; font-size: 0.85rem; color: var(--line); background: none; border: 0; padding: 8px 0; cursor: pointer; text-decoration: underline; }

@@ -9,7 +9,7 @@ import { $, segmented, frame } from '../ui/controls.js';
 const LEN = 20, N = 800, H = LEN / (N + 1), VMAX = 0.6;    // 20 nm、800 個格點：井外留夠長，λ3 才不會被兩端的牆推高
 const V = new Float64Array(N);
 const xs = i => (i + 1) * H;
-let shapes, last = null, dragging = false;
+let shapes, last = null, dragging = false, shape = 'box';   // shape：目前的預設形狀，自己畫過就是 null
 
 // 位障高都取 0.56 eV，和第一頁、報告 4.3 節一樣；方井寬 5 nm 也和第一頁一樣
 const V0 = 0.56;
@@ -21,6 +21,7 @@ const PRESETS = {
 };
 
 function preset(name) {
+  shape = name;
   for (let i = 0; i < N; i++) V[i] = PRESETS[name](xs(i));
   draw();
 }
@@ -58,11 +59,11 @@ export function draw() {
     worst = Math.max(worst, Math.abs(s));
   }
   $('r-levels').innerHTML = `<thead><tr><th>能階</th><th>特徵值（eV）</th></tr></thead><tbody>${E.map((l, k) =>
-    `<tr><td><span class="sw" style="background:${col[k % col.length]}"></span>λ${String(k + 1).replace(/./g, d => '₀₁₂₃₄₅₆₇₈₉'[d])}</td><td>${l.toFixed(3)}</td></tr>`).join('')
+    `<tr><td><span class="sw" style="background:${col[k % col.length]}"></span>λ<sub>${k + 1}</sub></td><td>${l.toFixed(3)}</td></tr>`).join('')
     || `<tr><td colspan="2">沒有低於井外位能 ${top.toFixed(2)} eV 的能階</td></tr>`}</tbody>`;
   $('n-orth').textContent = `H 是 ${N}×${N} 的對稱三對角矩陣（格距 ${H.toFixed(3)} nm），所以特徵值都是實數、特徵向量互相垂直`
     + (vs.length > 1 ? `：兩兩內積最大 ${pow10s(worst)}。` : '。至少要有兩個能階才能比較內積。')
-    + '這一頁為了能即時拖曳，格點比第一頁粗，λ₃ 會差約 0.001 eV。';
+    + (shape === 'box' && E.length > 2 ? '這一頁為了能即時拖曳，格點比第一頁粗，方井的 λ₃ 會比第一頁高約 0.001 eV。' : '');
   $('c-draw').setAttribute('aria-label', E.length ? `位能井與特徵向量，${E.length} 個能階：${E.map(l => l.toFixed(3)).join('、')} eV` : '位能井，沒有束縛態');
 }
 
@@ -76,6 +77,7 @@ function paint(ev) {
   }
   last = [i, v];
   shapes.clear();
+  shape = null;
   later();
 }
 const later = frame(() => draw());

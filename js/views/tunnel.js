@@ -4,15 +4,18 @@ import { stackLevels } from '../physics/tridiag.js';
 import { setup, axes, ticks, token, levelColors, vline, hline, dataX, clip, pow10 } from '../ui/plot.js';
 import { $, slider, segmented, frame } from '../ui/controls.js';
 
-const st = { v0: 0.56, b: 2, w: 5, nb: 2, hover: null };
+const st = { v0: 0.56, b: 2, w: 5, nb: 2, hover: null, all: false };
 const f3 = x => x.toFixed(3);
 const SUB = '₀₁₂₃₄₅₆₇₈₉';
-const lam = i => 'λ' + String(i + 1).replace(/./g, d => SUB[d]);
+const lam = i => 'λ' + String(i + 1).replace(/./g, d => SUB[d]);          // 說明文字用（純文字）
+const lamHTML = i => `λ<sub>${i + 1}</sub>`;                              // 表格用，兩位數下標才不會分開
 
 // 參數一變才重算的東西（能階、尖峰、整條曲線）；滑過圖只改游標，不重算
+// fast：拖拉桿的過程中先用粗格點（0.02 nm、外牆 8 nm）畫，停手後再用 0.01 nm、16 nm 精算
 let cache = null;
-function compute() {
-  const { v0, b, w, nb } = st, stack = barriers(v0, b, w, nb), lev = stackLevels(stack, v0);
+function compute(fast = false) {
+  const { v0, b, w, nb } = st, stack = barriers(v0, b, w, nb);
+  const lev = fast ? stackLevels(stack, v0, 0.02, 8) : stackLevels(stack, v0);
   const emax = v0 * 1.25, n = 1400, E = [], T = [];
   for (let i = 1; i <= n; i++) { E.push(emax * i / n); T.push(trans(E[i - 1], stack)); }
   // 每個特徵值左右找尖峰，範圍不超過到相鄰特徵值的一半，也不超過 0.03 eV
@@ -20,7 +23,8 @@ function compute() {
     const left = i ? (e - lev[i - 1]) / 2 : 0.03, right = i < lev.length - 1 ? (lev[i + 1] - e) / 2 : 0.03;
     // 只找位障頂以下的尖峰，和報告表 5 一樣；位障頂之上的寬峰不算
     const hi = Math.min(e + Math.min(0.03, right), st.v0);
-    const p = peakNear(stack, Math.max(1e-4, e - Math.min(0.03, left)), hi);
+    const p = fast ? peakNear(stack, Math.max(1e-4, e - Math.min(0.03, left)), hi, undefined, 4, 40)   // 拖曳中粗找
+                   : peakNear(stack, Math.max(1e-4, e - Math.min(0.03, left)), hi);
     return p && p.T > 0.5 && p.E < st.v0 ? p : null;
   });
   // 粗掃抓不到比格距還窄的峰：在每個找到的尖峰左右補點，再照能量排好
@@ -42,8 +46,8 @@ function compute() {
 }
 
 function drawPlots() {
-  const { stack, lev, pk, E, T, emax, ymin } = cache, col = levelColors();
-  const color = i => col[i % col.length];
+  const { stack, lev, pk, E, T, emax, ymin } = cache;
+  const color = colorOf(st.nb);
   const L = stack.reduce((a, s) => a + s[1], 0);
 
   // 上：位能（實心）與能階（只畫在井裡）
@@ -93,28 +97,39 @@ function drawPlots() {
   $('c-trans').setAttribute('aria-label', `穿透率對能量的曲線，T = 1 的尖峰在 ${found.join('、') || '（沒有）'} eV`);
 }
 
+// 位障三道以上時，同一組（同一個能階分裂出來的）用同一個顏色
+function colorOf(nb) {
+  const col = levelColors();
+  return i => col[(nb > 2 ? Math.floor(i / (nb - 1)) : i) % col.length];
+}
+
 function drawSide() {
-  const { v0, nb } = st, { stack, lev, pk } = cache, col = levelColors();
+  const { v0, nb } = st, { stack, lev, pk } = cache, color = colorOf(nb);
   // 位障三道以上：能階會一組一組靠在一起，組和組之間畫一條線
   const gaps = lev.slice(1).map((e, i) => e - lev[i]), small = Math.min(...gaps);
   const newGroup = i => nb > 2 && i > 0 && i % (nb - 1) === 0;   // nb − 1 個井，每個能階分裂成 nb − 1 個
   const miss = [];
+  // 超過兩組時先只列前兩組，按鈕可以展開
+  const cut = nb > 2 && !st.all && lev.length > 2 * (nb - 1) ? 2 * (nb - 1) : lev.length;
   const rows = lev.map((e, i) => {
     const p = pk[i];
     if (!p) miss.push(i);
-    return `<tr${newGroup(i) ? ' class="grp"' : ''}><td><span class="sw" style="background:${col[i % col.length]}"></span>${lam(i)}</td>`
+    if (i >= cut) return '';
+    return `<tr${newGroup(i) ? ' class="grp"' : ''}><td><span class="sw" style="background:${color(i)}"></span>${lamHTML(i)}</td>`
       + `<td>${f3(e)}</td><td>${p ? f3(p.E) : '—'}</td></tr>`;
   }).join('');
+  const more = cut < lev.length ? `<tr><td colspan="3"><button class="more" data-act="all">顯示全部 ${lev.length} 個能階</button></td></tr>` : '';
   $('r-tunnel').innerHTML = `<thead><tr><th>能階</th><th>三對角特徵值</th><th>T 的尖峰</th></tr></thead>`
-    + `<tbody>${rows || '<tr><td colspan="3">這個結構沒有束縛態</td></tr>'}</tbody>`;
+    + `<tbody>${rows || '<tr><td colspan="3">這個結構沒有束縛態</td></tr>'}${more}</tbody>`;
 
   const e0 = st.hover ?? 0.1, M = total(e0, stack), d = detCheck(M);
   let note = `整段矩陣 M 是 ${stack.length} 個 2×2 相乘。`;
-  note += d.big < 1e7
+  note += Math.abs(d.det - 1) < 1e-9          // 算出來夠準就直接列；不準時說明原因，不要只丟一個 0.99994
     ? `在 E = ${f3(e0)} eV，det M = ${d.det.toFixed(9)}。`
     : `在 E = ${f3(e0)} eV，M 的元素大到 ${d.big.toExponential(1)}。這時 ad 和 bc 幾乎相等，相減會損失有效位數，算出來的 det M 不準；`
       + `改看相對誤差 |det M − 1| / M²，${d.rel < 1e-20 ? '小於 10⁻²⁰' : '只有 ' + d.rel.toExponential(0)}，在浮點誤差內。每一層的 det 都是 1，乘積在理論上也是 1。`;
-  if (nb > 2) note += `${nb} 道位障有 ${nb - 1} 個井，每個能階分裂成 ${nb - 1} 個。`;
+  if (nb > 2) note += `${nb} 道位障有 ${nb - 1} 個井，位障頂以下的每個能階分裂成 ${nb - 1} 個`
+    + (lev.length % (nb - 1) ? '，最後一組只列出位障頂以下的部分。' : '。');
   if (miss.length) {
     const top = miss.filter(i => lev[i] > v0 - 0.06), other = miss.filter(i => lev[i] <= v0 - 0.06);
     if (top.length) note += `${top.map(lam).join('、')} 貼近位障頂，共振峰很寬，位障頂以下 0.03 eV 內找不到 T = 1 的尖峰。`;
@@ -130,14 +145,21 @@ export function draw() {
   drawPlots();
   drawSide();
 }
-const redraw = frame(() => { compute(); draw(); });
+// 拖曳中：每幀粗算一次；停手 150 ms 後精算一次
+let settle;
+const redraw = frame(() => {
+  compute(true); draw();
+  clearTimeout(settle);
+  settle = setTimeout(() => { compute(); draw(); }, 150);
+});
 const hoverDraw = frame(() => { drawPlots(); drawSide(); });
 
 export function init() {
   slider('s-v0', 'o-v0', v => v.toFixed(2) + ' eV', v => { st.v0 = v; redraw(); });
   slider('s-b', 'o-b', v => v.toFixed(2) + ' nm', v => { st.b = v; redraw(); });
   slider('s-w', 'o-w', v => v.toFixed(1) + ' nm', v => { st.w = v; redraw(); });
-  segmented('g-nb', v => { st.nb = +v; redraw(); });
+  segmented('g-nb', v => { st.nb = +v; st.all = false; redraw(); });
+  $('r-tunnel').addEventListener('click', e => { if (e.target.dataset.act === 'all') { st.all = true; drawSide(); } });
   const cv = $('c-trans');
   const read = e => {
     const E = dataX(e, cv, 0, cache.emax);

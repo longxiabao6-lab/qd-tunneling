@@ -12,9 +12,9 @@ export function below(d, e, x) {
   return n;
 }
 
-// 第 j 小的特徵值（j 從 0 起），在 [lo, hi] 裡二分
+// 第 j 小的特徵值（j 從 0 起），在 [lo, hi] 裡二分，夾到 1e-13 eV 就停
 export function eig(d, e, j, lo, hi) {
-  for (let it = 0; it < 60; it++) {
+  for (let it = 0; it < 80 && hi - lo > 1e-13; it++) {
     const mid = (lo + hi) / 2;
     if (below(d, e, mid) > j) hi = mid; else lo = mid;
   }
@@ -52,8 +52,9 @@ export function hamil(V, h, m = ME) {
 export function levels(V, h, vmax, k = 6, m = ME) {
   const { d, e, t } = hamil(V, h, m);
   const lo = Math.min(...V), n = Math.min(below(d, e, vmax), k), E = [];
-  for (let j = 0; j < n; j++) E.push(eig(d, e, j, lo, vmax + 4 * t));
-  return { E, d, e };
+  // 只要 vmax 以下的能階，上界取 vmax 就夠；下界從上一個能階開始，區間越來越小
+  for (let j = 0; j < n; j++) E.push(eig(d, e, j, j ? E[j - 1] : lo, vmax));
+  return { E, d, e, t };
 }
 
 // 傳遞矩陣那頁的結構放進三對角矩陣：兩端再接 out nm 的位障，最外面 ψ = 0
