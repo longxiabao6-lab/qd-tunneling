@@ -1,0 +1,7 @@
+/* 基本排版：字、背景、選取色、斜體變數 */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: var(--font); line-height: 1.6; color: var(--ink); background: var(--paper); }
+::selection { background: var(--line); color: #fff; }
+i { font-family: "Times New Roman", var(--font-title); }
+h1 { font-family: var(--font-title); font-weight: 600; font-size: 2rem; letter-spacing: 0.02em; margin: 0 0 8px; }

@@ -1,0 +1,31 @@
+/* 版面：頁首、分頁列、圖與控制欄的格線、頁尾；760px 以下改成單欄 */
+.top, main, .foot { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+.top { padding-top: 40px; }
+.lede { color: var(--muted); max-width: 46em; margin: 0 0 28px; }
+
+.tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--rule); }
+.tabs button {
+  font: inherit; color: var(--muted); background: none; border: 0; cursor: pointer;
+  padding: 10px 0 12px; margin-bottom: -1px; border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+.tabs button:hover { color: var(--ink); }
+.tabs button[aria-selected="true"] { color: var(--ink); font-weight: 500; border-bottom-color: var(--line); }
+
+.panel { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: var(--gap); padding: 28px 0 8px; }
+.panel[hidden] { display: none; }
+figure { margin: 0 0 18px; }
+figcaption { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
+canvas {
+  display: block; width: 100%; max-width: 100%; touch-action: none;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius);
+}
+
+.foot { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--rule); margin-top: 16px; padding-top: 16px; padding-bottom: 40px; }
+
+@media (max-width: 760px) {
+  .top { padding-top: 24px; }
+  h1 { font-size: 1.6rem; }
+  .tabs { gap: 20px; }
+  .panel { grid-template-columns: minmax(0, 1fr); gap: 8px; padding-top: 18px; }
+}

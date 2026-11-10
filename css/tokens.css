@@ -1,0 +1,19 @@
+/* 設計變數：配色跟報告一樣，紙色底、深藍字；能階顏色照能量由低到高用紅、綠、藍（低能量發紅光） */
+:root {
+  --paper: #f7f4ee;
+  --sheet: #fffdf9;
+  --ink: #1c2b3a;
+  --muted: #5b6470;
+  --rule: #ddd6c8;
+  --line: #1f3a5f;
+  --barrier: #c9bfab;
+  --l1: #c2410c;
+  --l2: #15803d;
+  --l3: #1d4ed8;
+  --l4: #7c3aed;
+  --focus: #1f3a5f;
+  --radius: 6px;
+  --gap: 32px;
+  --font: "Noto Sans TC", "PingFang TC", system-ui, sans-serif;
+  --font-title: "Noto Serif TC", "Songti TC", serif;
+}
