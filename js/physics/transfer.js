@@ -43,12 +43,13 @@ export function barriers(v0, b, w, nb) {
   return s;
 }
 
-// 在 [lo, hi] 裡找 T 的最高點：每輪取 200 點、留下最高點左右各兩格再細分。
+// 在 [lo, hi] 裡找 T 的最高點：每輪取 120 點、留下最高點左右各兩格再細分。
 // 窄尖峰在 log T 上是一個往下開的漏斗，粗格點的最高點一定落在漏斗裡，所以一路縮小就找得到
 export function peakNear(stack, lo, hi, m = ME) {
-  let best = lo;
-  for (let round = 0; round < 8; round++) {
-    const n = 200, dx = (hi - lo) / n;
+  let best = lo, dx = 0;
+  for (let round = 0; round < 7; round++) {
+    const n = 120;
+    dx = (hi - lo) / n;
     let bt = -1;
     for (let i = 0; i <= n; i++) {
       const e = lo + i * dx, t = trans(e, stack, m);
@@ -56,7 +57,10 @@ export function peakNear(stack, lo, hi, m = ME) {
     }
     lo = Math.max(lo, best - 2 * dx); hi = best + 2 * dx;
   }
-  return { E: best, T: trans(best, stack, m) };
+  // 是不是真的尖峰：左右各踏一小步（可以踏出窗口），兩邊都比較低才算。
+  // T 在窗口裡單調時，最高點只是窗口的邊，踏出去會更高
+  const T = trans(best, stack, m), d = Math.max(dx, 1e-9);
+  return T > trans(best - d, stack, m) && T > trans(best + d, stack, m) ? { E: best, T } : null;
 }
 
 // |det M − 1| 和 M 的大小一起看：元素到 1e13 時，ad − bc 相減會把小數位消光

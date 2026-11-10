@@ -18,9 +18,23 @@ function compute() {
   // 每個特徵值左右找尖峰，範圍不超過到相鄰特徵值的一半，也不超過 0.03 eV
   const pk = lev.map((e, i) => {
     const left = i ? (e - lev[i - 1]) / 2 : 0.03, right = i < lev.length - 1 ? (lev[i + 1] - e) / 2 : 0.03;
-    const p = peakNear(stack, Math.max(1e-4, e - Math.min(0.03, left)), e + Math.min(0.03, right));
-    return p.T > 0.5 ? p : null;
+    // 只找位障頂以下的尖峰，和報告表 5 一樣；位障頂之上的寬峰不算
+    const hi = Math.min(e + Math.min(0.03, right), st.v0);
+    const p = peakNear(stack, Math.max(1e-4, e - Math.min(0.03, left)), hi);
+    return p && p.T > 0.5 && p.E < st.v0 ? p : null;
   });
+  // 粗掃抓不到比格距還窄的峰：在每個找到的尖峰左右補點，再照能量排好
+  for (const p of pk) {
+    if (!p) continue;
+    for (let k = 1; k <= 9; k++) for (const s of [-1, 1]) {
+      const e = p.E + s * emax / n * Math.pow(10, -k / 1.5);
+      E.push(e); T.push(trans(e, stack));
+    }
+    E.push(p.E); T.push(p.T);
+  }
+  const order = E.map((_, i) => i).sort((a, b) => E[a] - E[b]);
+  const Es = order.map(i => E[i]), Ts = order.map(i => T[i]);
+  E.length = 0; T.length = 0; E.push(...Es); T.push(...Ts);
   // 縱軸下限：曲線最低點往下取到 10 的偶數次方，最低畫到 10⁻³⁰
   const lowest = Math.min(...T.filter(t => t > 0));
   const ymin = Math.max(1e-30, Math.min(1e-6, Math.pow(10, 2 * Math.floor(Math.log10(lowest) / 2))));
@@ -68,8 +82,12 @@ function drawPlots() {
   if (st.hover !== null) {
     const e = st.hover, t = trans(e, stack), right = a2.X(e) > c2.w * 0.7;
     c2.g.fillStyle = token('--ink'); c2.g.beginPath(); c2.g.arc(a2.X(e), a2.Y(Math.max(t, ymin)), 3.5, 0, 2 * Math.PI); c2.g.fill();
-    c2.g.textAlign = right ? 'right' : 'left'; c2.g.textBaseline = 'bottom';
-    c2.g.fillText(`E = ${f3(e)} eV　T = ${t < 1e-3 ? t.toExponential(1) : t.toFixed(3)}`, a2.X(e) + (right ? -8 : 8), a2.Y(Math.max(t, ymin)) - 6);
+    const y = a2.Y(Math.max(t, ymin)), below = y < 28;          // 太靠上緣就寫在點的下方
+    const label = `E = ${f3(e)} eV　T = ${t < 1e-3 ? t.toExponential(1) : t.toFixed(3)}`;
+    const lw = c2.g.measureText(label).width, lx = right ? a2.X(e) - 8 - lw : a2.X(e) + 8, ly = below ? y + 6 : y - 6 - 14;
+    c2.g.fillStyle = token('--sheet'); c2.g.fillRect(lx - 3, ly - 1, lw + 6, 17);       // 底色，免得字壓在虛線上
+    c2.g.fillStyle = token('--ink'); c2.g.textAlign = 'left'; c2.g.textBaseline = 'top';
+    c2.g.fillText(label, lx, ly);
   }
   const found = pk.filter(Boolean).map(p => f3(p.E));
   $('c-trans').setAttribute('aria-label', `穿透率對能量的曲線，T = 1 的尖峰在 ${found.join('、') || '（沒有）'} eV`);
@@ -79,7 +97,7 @@ function drawSide() {
   const { v0, nb } = st, { stack, lev, pk } = cache, col = levelColors();
   // 位障三道以上：能階會一組一組靠在一起，組和組之間畫一條線
   const gaps = lev.slice(1).map((e, i) => e - lev[i]), small = Math.min(...gaps);
-  const newGroup = i => nb > 2 && i > 0 && gaps[i - 1] > 2.5 * small;
+  const newGroup = i => nb > 2 && i > 0 && i % (nb - 1) === 0;   // nb − 1 個井，每個能階分裂成 nb − 1 個
   const miss = [];
   const rows = lev.map((e, i) => {
     const p = pk[i];
@@ -92,14 +110,14 @@ function drawSide() {
 
   const e0 = st.hover ?? 0.1, M = total(e0, stack), d = detCheck(M);
   let note = `整段矩陣 M 是 ${stack.length} 個 2×2 相乘。`;
-  note += d.big < 1e4
+  note += d.big < 1e7
     ? `在 E = ${f3(e0)} eV，det M = ${d.det.toFixed(9)}。`
-    : `在 E = ${f3(e0)} eV，M 的元素大到 ${d.big.toExponential(1)}，ad − bc 相減時小數位被消光，算出來的 det M 不可靠；`
-      + `|det M − 1| 和 M² 相比只有 ${d.rel.toExponential(0)}，仍在浮點誤差內。每一層的 det 都是 1，乘積在理論上也是 1。`;
+    : `在 E = ${f3(e0)} eV，M 的元素大到 ${d.big.toExponential(1)}。這時 ad 和 bc 幾乎相等，相減會損失有效位數，算出來的 det M 不準；`
+      + `改看相對誤差 |det M − 1| / M²，${d.rel < 1e-20 ? '小於 10⁻²⁰' : '只有 ' + d.rel.toExponential(0)}，在浮點誤差內。每一層的 det 都是 1，乘積在理論上也是 1。`;
   if (nb > 2) note += `${nb} 道位障有 ${nb - 1} 個井，每個能階分裂成 ${nb - 1} 個。`;
   if (miss.length) {
     const top = miss.filter(i => lev[i] > v0 - 0.06), other = miss.filter(i => lev[i] <= v0 - 0.06);
-    if (top.length) note += `${top.map(lam).join('、')} 貼近位障頂，共振峰很寬又偏高，0.03 eV 內找不到 T = 1 的尖峰。`;
+    if (top.length) note += `${top.map(lam).join('、')} 貼近位障頂，共振峰很寬，位障頂以下 0.03 eV 內找不到 T = 1 的尖峰。`;
     if (other.length) note += small < 2e-4
       ? `${other.map(lam).join('、')} 沒有配到尖峰：能階彼此只差 ${small.toExponential(0)} eV，和三對角矩陣格距 0.01 nm 的誤差同一量級，尖峰無法一一配對。`
       : `${other.map(lam).join('、')} 附近找不到 T = 1 的尖峰。`;

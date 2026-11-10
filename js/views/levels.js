@@ -1,6 +1,9 @@
 // 分頁二：能階。可以在圖上拖曳改位能，H 的特徵值畫成能階、特徵向量畫成波函數
 import { levels, vec } from '../physics/tridiag.js';
-import { setup, axes, ticks, token, levelColors, hline, dataX, dataY } from '../ui/plot.js';
+import { setup, axes, ticks, token, levelColors, hline, dataX, dataY, pow10 } from '../ui/plot.js';
+
+// 4.7e-14 寫成 4.7×10⁻¹⁴，手機上才不會在 e 那裡斷行
+const pow10s = x => { if (x === 0) return '0'; const p = Math.floor(Math.log10(x)); return `${(x / 10 ** p).toFixed(1)}×${pow10(10 ** p)}`; };
 import { $, segmented, frame } from '../ui/controls.js';
 
 const LEN = 20, N = 800, H = LEN / (N + 1), VMAX = 0.6;    // 20 nm、800 個格點：井外留夠長，λ3 才不會被兩端的牆推高
@@ -41,9 +44,10 @@ export function draw() {
     g.strokeStyle = col[k % col.length];
     g.globalAlpha = 0.35; g.lineWidth = 1; g.setLineDash([5, 4]);
     hline(g, a.Y(l), a.X(0), a.X(LEN));
-    g.globalAlpha = 1; g.lineWidth = 1.8; g.setLineDash([]); g.beginPath();
+    g.globalAlpha = 1; g.setLineDash([]); g.beginPath();
     for (let i = 0; i < N; i++) (i ? g.lineTo : g.moveTo).call(g, a.X(xs(i)), a.Y(l + s * v[i]));
-    g.stroke();
+    g.strokeStyle = token('--sheet'); g.lineWidth = 4.5; g.stroke();   // 先描一圈紙色，曲線落在位障色塊上也看得清楚
+    g.strokeStyle = col[k % col.length]; g.lineWidth = 1.8; g.stroke();
   });
 
   // 正交性：兩兩內積最大的那個
@@ -54,11 +58,12 @@ export function draw() {
     worst = Math.max(worst, Math.abs(s));
   }
   $('r-levels').innerHTML = `<thead><tr><th>能階</th><th>特徵值（eV）</th></tr></thead><tbody>${E.map((l, k) =>
-    `<tr><td><span class="sw" style="background:${col[k % col.length]}"></span>λ<sub>${k + 1}</sub></td><td>${l.toFixed(3)}</td></tr>`).join('')
+    `<tr><td><span class="sw" style="background:${col[k % col.length]}"></span>λ${String(k + 1).replace(/./g, d => '₀₁₂₃₄₅₆₇₈₉'[d])}</td><td>${l.toFixed(3)}</td></tr>`).join('')
     || `<tr><td colspan="2">沒有低於井外位能 ${top.toFixed(2)} eV 的能階</td></tr>`}</tbody>`;
   $('n-orth').textContent = `H 是 ${N}×${N} 的對稱三對角矩陣（格距 ${H.toFixed(3)} nm），所以特徵值都是實數、特徵向量互相垂直`
-    + (vs.length > 1 ? `：兩兩內積最大 ${worst.toExponential(1)}。` : '。至少要有兩個能階才能比較內積。');
-  $('c-draw').setAttribute('aria-label', `位能井與特徵向量，${E.length} 個能階：${E.map(l => l.toFixed(3)).join('、')} eV`);
+    + (vs.length > 1 ? `：兩兩內積最大 ${pow10s(worst)}。` : '。至少要有兩個能階才能比較內積。')
+    + '這一頁為了能即時拖曳，格點比第一頁粗，λ₃ 會差約 0.001 eV。';
+  $('c-draw').setAttribute('aria-label', E.length ? `位能井與特徵向量，${E.length} 個能階：${E.map(l => l.toFixed(3)).join('、')} eV` : '位能井，沒有束縛態');
 }
 
 // 拖曳：兩次事件之間的格點用直線補起來，畫得快也不會斷

@@ -67,5 +67,5 @@ export function stackLevels(stack, v0, h = 0.01, out = 16) {   // 外牆要離�
       acc += w;
     }
   }
-  return levels(V, h, v0 - 1e-6).E;
+  return levels(V, h, v0 - 1e-6, 40).E;            // 位障多時能階也多，全部列出來才不會配錯
 }

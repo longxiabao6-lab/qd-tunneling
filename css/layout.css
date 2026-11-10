@@ -30,9 +30,8 @@ canvas {
   .tabs { gap: 20px; }
   .panel { grid-template-columns: minmax(0, 1fr); gap: 8px; padding-top: 18px; }
   /* 手機：圖黏在畫面上方，往下捲到拉桿時還看得到圖在變 */
-  .figs.stick, .figs.stick-tunnel { position: sticky; z-index: 1; background: var(--paper); padding-top: 8px; }
-  .figs.stick { top: 0; }
-  .figs.stick-tunnel { top: -186px; }           /* 位能圖捲走，只留 T(E) */
+  .figs { display: contents; }                  /* figure 直接排在分頁裡，sticky 才能黏到整頁捲完 */
+  figure.stick { position: sticky; top: 0; z-index: 1; background: var(--paper); padding-top: 8px; margin-bottom: 10px; }
   .figs figcaption { font-size: 0.78rem; }
 }
 #c-draw { touch-action: none; }

@@ -28,12 +28,12 @@
 <main>
   <!-- 一、共振穿隧 -->
   <section class="panel" id="p-tunnel" role="tabpanel" aria-labelledby="t-tunnel" tabindex="0">
-    <div class="figs stick-tunnel">
+    <div class="figs">
       <figure>
         <canvas id="c-profile" height="200" data-hm="130" role="img" aria-label="位能與能階"></canvas>
         <figcaption>位能：淺褐色是位障，彩色線是三對角矩陣算出的能階</figcaption>
       </figure>
-      <figure>
+      <figure class="stick">
         <canvas id="c-trans" height="300" data-hm="230" role="img" aria-label="穿透率對能量"></canvas>
         <figcaption>穿透率 <i>T</i>(<i>E</i>)，縱軸取對數；虛線是上面的能階，圓點是找到的尖峰。滑過或點一下圖可以讀數值</figcaption>
       </figure>
@@ -57,8 +57,8 @@
 
   <!-- 二、能階 -->
   <section class="panel" id="p-levels" role="tabpanel" aria-labelledby="t-levels" tabindex="0" hidden>
-    <div class="figs stick">
-      <figure>
+    <div class="figs">
+      <figure class="stick">
         <canvas id="c-draw" height="420" data-hm="300" role="img" aria-label="位能井與特徵向量"></canvas>
         <figcaption>在圖上拖曳可以改井的形狀（手機請先按「用手指畫井」）。每個能階畫在它的能量高度上，曲線是對應的特徵向量，高低只表示形狀</figcaption>
       </figure>
@@ -76,8 +76,8 @@
 
   <!-- 三、顏色 -->
   <section class="panel" id="p-color" role="tabpanel" aria-labelledby="t-color" tabindex="0" hidden>
-    <div class="figs stick">
-      <figure class="glow">
+    <div class="figs">
+      <figure class="glow stick">
         <canvas id="c-dot" height="300" data-hm="190" role="img" aria-label="量子點的顏色"></canvas>
         <canvas id="c-spec" height="70" role="img" aria-label="可見光譜上的位置"></canvas>
         <figcaption>點的大小照直徑比例畫。顏色是近似顯示，報告的色度照 CIE 1931 計算</figcaption>
