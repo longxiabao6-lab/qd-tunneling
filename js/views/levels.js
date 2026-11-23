@@ -63,7 +63,7 @@ export function draw() {
     || `<tr><td colspan="2">沒有低於井外位能 ${top.toFixed(2)} eV 的能階</td></tr>`}</tbody>`;
   $('n-orth').textContent = `H 是 ${N}×${N} 的對稱三對角矩陣（格距 ${H.toFixed(3)} nm），所以特徵值都是實數、特徵向量互相垂直`
     + (vs.length > 1 ? `：兩兩內積最大 ${pow10s(worst)}。` : '。至少要有兩個能階才能比較內積。')
-    + (shape === 'box' && E.length > 2 ? '這一頁為了能即時拖曳，格點比第一頁粗，方井的 λ₃ 會比第一頁高約 0.001 eV。' : '');
+    + (shape === 'box' && E.length > 2 ? '這一頁井外只留 7.5 nm，格點也比第一頁粗，方井的 λ₃ 會比第一頁高約 0.001 eV。' : '');
   $('c-draw').setAttribute('aria-label', E.length ? `位能井與特徵向量，${E.length} 個能階：${E.map(l => l.toFixed(3)).join('、')} eV` : '位能井，沒有束縛態');
 }
 
